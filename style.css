@@ -1,0 +1,101 @@
+import { useState } from "react"; import { Card, CardContent } from "@/components/ui/card"; import { Button } from "@/components/ui/button"; import { Input } from "@/components/ui/input"; import { Textarea } from "@/components/ui/textarea";
+
+export default function JornalismoSite() { const [categoria, setCategoria] = useState("jogos"); const [noticiaSelecionada, setNoticiaSelecionada] = useState(null);
+
+const [noticias, setNoticias] = useState({ jogos: [], esporte: [], cultura_pop: [], musica: [], moda: [], casos_criminais: [] });
+
+const [novaNoticia, setNovaNoticia] = useState({ titulo: "", texto: "", autor: "", imagem: "" });
+
+const formatarData = (data) => { return new Date(data).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" }); };
+
+const obterSemana = (data) => { const d = new Date(data); const primeiroDia = new Date(d.getFullYear(), 0, 1); const dias = Math.floor((d - primeiroDia) / (24 * 60 * 60 * 1000)); return Math.ceil((dias + primeiroDia.getDay() + 1) / 7); };
+
+const adicionarNoticia = () => { if (!novaNoticia.titulo || !novaNoticia.texto) return;
+
+const agora = new Date();
+
+const noticiaComData = {
+  ...novaNoticia,
+  data: agora.toISOString(),
+  semana: obterSemana(agora)
+};
+
+setNoticias({
+  ...noticias,
+  [categoria]: [...noticias[categoria], noticiaComData]
+});
+
+setNovaNoticia({ titulo: "", texto: "", autor: "", imagem: "" });
+
+};
+
+const voltar = () => setNoticiaSelecionada(null);
+
+if (noticiaSelecionada) { return ( <div className="p-4 max-w-3xl mx-auto"> <Button onClick={voltar}>← Voltar</Button> <img src={noticiaSelecionada.imagem} className="w-full h-60 object-cover mt-3" /> <h1 className="text-2xl font-bold mt-3">{noticiaSelecionada.titulo}</h1> <p className="text-sm text-gray-500">Por {noticiaSelecionada.autor}</p> <p className="text-xs text-gray-400"> Publicado em {formatarData(noticiaSelecionada.data)} • Semana {noticiaSelecionada.semana} </p> <p className="mt-3">{noticiaSelecionada.texto}</p> </div> ); }
+
+return ( <div className="p-4 max-w-4xl mx-auto"> <h1 className="text-3xl font-bold text-center">JORNALISMO FRANCISCO</h1>
+
+<div className="flex gap-2 overflow-x-auto my-4">
+    {Object.keys(noticias).map((cat) => (
+      <Button key={cat} onClick={() => setCategoria(cat)}>
+        {cat}
+      </Button>
+    ))}
+  </div>
+
+  <div className="bg-gray-100 p-4 rounded-xl mb-6">
+    <h2 className="font-bold mb-2">Postar notícias semanalmente por categoria</h2>
+
+    <Input
+      placeholder="Título"
+      value={novaNoticia.titulo}
+      onChange={(e) => setNovaNoticia({ ...novaNoticia, titulo: e.target.value })}
+    />
+
+    <Textarea
+      placeholder="Texto da notícia"
+      className="mt-2"
+      value={novaNoticia.texto}
+      onChange={(e) => setNovaNoticia({ ...novaNoticia, texto: e.target.value })}
+    />
+
+    <Input
+      placeholder="Autor"
+      className="mt-2"
+      value={novaNoticia.autor}
+      onChange={(e) => setNovaNoticia({ ...novaNoticia, autor: e.target.value })}
+    />
+
+    <Input
+      placeholder="URL da imagem"
+      className="mt-2"
+      value={novaNoticia.imagem}
+      onChange={(e) => setNovaNoticia({ ...novaNoticia, imagem: e.target.value })}
+    />
+
+    <Button className="mt-3" onClick={adicionarNoticia}>
+      Publicar
+    </Button>
+  </div>
+
+  <div className="grid gap-4">
+    {noticias[categoria].map((n, i) => (
+      <Card key={i}>
+        <img src={n.imagem} className="w-full h-40 object-cover" />
+        <CardContent>
+          <h2 className="font-bold">{n.titulo}</h2>
+          <p className="text-xs text-gray-500">Por {n.autor}</p>
+          <p className="text-xs text-gray-400">
+            {formatarData(n.data)} • Semana {n.semana}
+          </p>
+          <p>{n.texto}</p>
+          <Button onClick={() => setNoticiaSelecionada(n)} className="mt-2">
+            Ler matéria
+          </Button>
+        </CardContent>
+      </Card>
+    ))}
+  </div>
+</div>
+
+); }
